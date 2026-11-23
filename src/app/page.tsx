@@ -12,49 +12,6 @@ type Home = {
 };
 
 
-useEffect(() => {
-  let active = true;
-
-  async function loadHomes() {
-    if (!supabase) {
-      setHomesError("Sambungan Supabase tidak tersedia.");
-      setHomesLoading(false);
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from("homes")
-      .select("*");
-
-    if (!active) return;
-
-    if (error) {
-      console.error("Gagal membaca inventori rumah:", error);
-      setHomesError("Inventori rumah gagal dimuatkan: " + error.message);
-      setHomesLoading(false);
-      return;
-    }
-
-    const availableHomes = (data || [])
-      .filter((home: any) =>
-        String(home.status || "").trim().toLowerCase() === "available"
-      )
-      .map((home: any) => ({
-        ...home,
-        price: Number(home.price) || 0
-      }));
-
-    setHomes(availableHomes);
-    setHomesError("");
-    setHomesLoading(false);
-  }
-
-  loadHomes();
-
-  return () => {
-    active = false;
-  };
-}, []);
 
 export default function HomePage(){
   const [homes,setHomes]=useState<Home[]>([]);
@@ -102,6 +59,49 @@ useEffect(()=>{
     setSettingsError("");
   })();
 },[]);
+  useEffect(() => {
+  let active = true;
+
+  async function loadHomes() {
+    if (!supabase) {
+      setHomesError("Sambungan Supabase tidak tersedia.");
+      setHomesLoading(false);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("homes")
+      .select("*");
+
+    if (!active) return;
+
+    if (error) {
+      console.error("Gagal membaca inventori rumah:", error);
+      setHomesError("Inventori rumah gagal dimuatkan: " + error.message);
+      setHomesLoading(false);
+      return;
+    }
+
+    const availableHomes = (data || [])
+      .filter((home: any) =>
+        String(home.status || "").trim().toLowerCase() === "available"
+      )
+      .map((home: any) => ({
+        ...home,
+        price: Number(home.price) || 0
+      }));
+
+    setHomes(availableHomes);
+    setHomesError("");
+    setHomesLoading(false);
+  }
+
+  loadHomes();
+
+  return () => {
+    active = false;
+  };
+}, []);
 
 const otAverage=otMonths.reduce(
   (total,value)=>total+(Number(value)||0),0
