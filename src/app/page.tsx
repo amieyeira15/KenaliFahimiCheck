@@ -23,6 +23,9 @@ export default function HomePage(){
   const [connected,setConnected]=useState(false);
   const [basic,setBasic]=useState("3000"),[fixed,setFixed]=useState("500"),[variable,setVariable]=useState("300");
   const [variablePercent,setVariablePercent]=useState("50");
+const [otMonths,setOtMonths]=useState(["0","0","0","0","0","0"]);
+const [otPercent,setOtPercent]=useState(80);
+const [settingsLoaded,setSettingsLoaded]=useState(false);
   const [car,setCar]=useState("600"),[personal,setPersonal]=useState("200"),[other,setOther]=useState("100");
   const [dsr,setDsr]=useState("60"),[rate,setRate]=useState("4.2"),[years,setYears]=useState("35"),[margin,setMargin]=useState("90");
   const [location,setLocation]=useState("Semua lokasi");
