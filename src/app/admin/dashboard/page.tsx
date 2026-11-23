@@ -5,7 +5,7 @@ import {supabase} from "@/lib/supabase";
 
 type Home={id:string;title:string;price:number;location:string;property_type:string;bedrooms:number|null;bathrooms:number|null;tenure:string|null;image_url:string|null;description:string|null;status:string};
 const blank={title:"",price:"",location:"",property_type:"Teres",bedrooms:"3",bathrooms:"2",tenure:"",image_url:"",description:"",status:"available"};
-export default function Dashboard(){
+export default function dashboard(){
  const [homes,setHomes]=useState<Home[]>([]),[form,setForm]=useState(blank),[editing,setEditing]=useState<string|null>(null),[leads,setLeads]=useState<any[]>([]),[error,setError]=useState(""),[ready,setReady]=useState(false);
  const router=useRouter();
  async function load(){if(!supabase)return;const {data,error}=await supabase.from("homes").select("*").order("created_at",{ascending:false});if(error)setError(error.message);else setHomes(data||[]);const l=await supabase.from("leads").select("id,name,phone,estimated_budget,created_at").order("created_at",{ascending:false}).limit(100);if(!l.error)setLeads(l.data||[])}
