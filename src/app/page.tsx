@@ -92,7 +92,7 @@ const result=useMemo(()=>calculate({
   const wa=(home?:Home)=>`https://wa.me/${waNumber}?text=${encodeURIComponent(`Salam, saya telah membuat semakan di RumahKu Check. Anggaran bajet rumah saya ${money(result.maxPropertyPrice)}.${home?` Saya berminat dengan ${home.title} (${money(home.price)}).`:" Saya ingin berbincang tentang pilihan rumah yang sesuai."}`)}`;
 
   
-async function saveLead() {
+ async function saveLead() {
   if (!supabase || !consent || !name.trim() || !phone.trim()) return;
 
   try {
@@ -124,9 +124,7 @@ async function saveLead() {
     alert("Berlaku ralat sistem. Sila cuba lagi.");
   }
 }
-
-
-  return <main className="wrap">
+return <main className="wrap">
     <nav className="nav"><a className="brand" href="#"><House size={21} style={{verticalAlign:"-4px",color:"#176b4a"}}/> RUMAHKU <span>CHECK</span></a><a className="muted" href="/admin">Admin</a></nav>
     <section className="hero"><div><div className="eyebrow">Semak kemampuan. Cari rumah.</div><h1>Rumah yang sesuai, bermula dengan kemampuan anda.</h1><p>Masukkan pendapatan dan komitmen bulanan. Kami bantu anggarkan bajet pembelian dan padankan dengan unit rumah yang tersedia.</p><a className="btn" href="#semak">Mula semak <ArrowRight size={17}/></a></div><div className="hero-mark"><House size={118} strokeWidth={1.1}/></div></section>
     <section className="grid" id="semak">
