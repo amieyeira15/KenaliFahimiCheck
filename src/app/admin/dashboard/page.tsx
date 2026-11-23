@@ -108,6 +108,8 @@ async function load(){
  
 </section></div>
 
+
+<h2 style={{color:"red"}}>UJIAN TETAPAN ADMIN</h2>
 <section className="panel" style={{marginTop:20}}>
   <h2>Tetapan Pengiraan Kelayakan</h2>
   <p className="muted">
