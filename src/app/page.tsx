@@ -41,15 +41,40 @@ export default function HomePage(){
   const waNumber=process.env.NEXT_PUBLIC_WHATSAPP_NUMBER||"60182970139";
   const wa=(home?:Home)=>`https://wa.me/${waNumber}?text=${encodeURIComponent(`Salam, saya telah membuat semakan di RumahKu Check. Anggaran bajet rumah saya ${money(result.maxPropertyPrice)}.${home?` Saya berminat dengan ${home.title} (${money(home.price)}).`:" Saya ingin berbincang tentang pilihan rumah yang sesuai."}`)}`;
 
-  async function saveLead(){
-    if(!supabase||!consent||!name.trim()||!phone.trim())return;
-    const {error}=await supabase.from("leads").insert({
-      name:name.trim(),phone:phone.trim(),estimated_budget:Math.round(result.maxPropertyPrice),
-      monthly_income:Math.round(result.income),monthly_commitments:Math.round((Number(car)||0)+(Number(personal)||0)+(Number(other)||0)),
-      consent_at:new Date().toISOString(),source:"RumahKu Check"
+  
+async function saveLead() {
+  if (!supabase || !consent || !name.trim() || !phone.trim()) return;
+
+  try {
+    const { data, error } = await supabase.from("leads").insert({
+      name: name.trim(),
+      phone: phone.trim(),
+      estimated_budget: Math.round(result.maxPropertyPrice),
+      monthly_income: Math.round(result.income),
+      monthly_commitments: Math.round(
+        (Number(car) || 0) +
+        (Number(personal) || 0) +
+        (Number(other) || 0)
+      ),
+      consent_at: new Date().toISOString(),
+      source: "RumahKu Check"
     });
-    if(!error)setSaved(true);
+
+    if (error) {
+      console.error("Ralat simpan prospek:", error);
+      alert("Gagal simpan prospek: " + error.message);
+      return;
+    }
+
+    setSaved(true);
+    alert("Prospek berjaya disimpan!");
+
+  } catch (err) {
+    console.error("Ralat sistem:", err);
+    alert("Berlaku ralat sistem. Sila cuba lagi.");
   }
+}
+
 
   return <main className="wrap">
     <nav className="nav"><a className="brand" href="#"><House size={21} style={{verticalAlign:"-4px",color:"#176b4a"}}/> RUMAHKU <span>CHECK</span></a><a className="muted" href="/admin">Admin</a></nav>
