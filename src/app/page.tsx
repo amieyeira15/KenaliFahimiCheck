@@ -31,14 +31,61 @@ const [settingsLoaded,setSettingsLoaded]=useState(false);
   const [location,setLocation]=useState("Semua lokasi");
   const [name,setName]=useState(""),[phone,setPhone]=useState(""),[consent,setConsent]=useState(false),[saved,setSaved]=useState(false);
   const [showResults,setShowResults]=useState(false);
+  const [settingsError,setSettingsError]=useState("");
+  
+useEffect(()=>{
+  (async()=>{
+    if(!supabase){
+      setSettingsError("Sambungan sistem tidak tersedia.");
+      return;
+    }
 
-  useEffect(()=>{(async()=>{if(!supabase)return;const {data,error}=await supabase.from("homes").select("*").eq("status","available").order("created_at",{ascending:false});if(!error&&data){setHomes(data as Home[]);setConnected(true)}})()},[]);
+    const {data,error}=await supabase
+      .from("app_settings")
+      .select("dsr,annual_rate,years,margin,ot_percent")
+      .eq("id",1)
+      .single();
 
-  const result=useMemo(()=>calculate({
-    basic:Number(basic)||0,fixed:Number(fixed)||0,variable:Number(variable)||0,variablePercent:Number(variablePercent),
-    commitments:(Number(car)||0)+(Number(personal)||0)+(Number(other)||0),
-    dsr:Number(dsr),annualRate:Number(rate),years:Number(years),margin:Number(margin)
-  }),[basic,fixed,variable,variablePercent,car,personal,other,dsr,rate,years,margin]);
+    if(error || !data){
+      console.error("Gagal membaca tetapan Admin:",error?.message);
+      setSettingsError("Tetapan Admin gagal dimuatkan. Sila cuba lagi.");
+      return;
+    }
+
+    setDsr(String(data.dsr));
+    setRate(String(data.annual_rate));
+    setYears(String(data.years));
+    setMargin(String(data.margin));
+    setOtPercent(Number(data.ot_percent));
+
+    setSettingsLoaded(true);
+    setSettingsError("");
+  })();
+},[]);
+
+const otAverage=otMonths.reduce(
+  (total,value)=>total+(Number(value)||0),0
+)/6;
+
+
+const result=useMemo(()=>calculate({
+  basic:Number(basic)||0,
+  fixed:Number(fixed)||0,
+  variable:Number(variable)||0,
+  variablePercent:Number(variablePercent),
+  otAverage,
+  otPercent,
+  commitments:(Number(car)||0)+(Number(personal)||0)+(Number(other)||0),
+  dsr:Number(dsr),
+  annualRate:Number(rate),
+  years:Number(years),
+  margin:Number(margin)
+}),[
+  basic,fixed,variable,variablePercent,
+  otAverage,otPercent,car,personal,other,
+  dsr,rate,years,margin
+]);
+
 
   const matches=homes.filter(h=>h.price<=result.maxPropertyPrice&&(location==="Semua lokasi"||h.location.toLowerCase().includes(location.toLowerCase())));
   const waNumber=process.env.NEXT_PUBLIC_WHATSAPP_NUMBER||"60182970139";
@@ -86,18 +133,120 @@ async function saveLead() {
       <div className="panel"><h2>1. Maklumat pendapatan</h2><p className="muted">Masukkan jumlah bulanan dalam Ringgit Malaysia.</p>
         <div className="field"><label>Gaji pokok (RM)</label><input type="number" min="0" value={basic} onChange={e=>setBasic(e.target.value)}/></div>
         <div className="row"><div className="field"><label>Elaun tetap (RM)</label><input type="number" min="0" value={fixed} onChange={e=>setFixed(e.target.value)}/></div><div className="field"><label>Elaun tidak tetap (RM)</label><input type="number" min="0" value={variable} onChange={e=>setVariable(e.target.value)}/></div></div>
-        <div className="field"><label>Elaun tidak tetap diambil kira</label><select value={variablePercent} onChange={e=>setVariablePercent(e.target.value)}><option value="0">0%</option><option value="50">50% (andaian)</option><option value="100">100% (andaian)</option></select></div>
+<h3 style={{marginTop:24}}>OT enam bulan terdahulu</h3>
+<p className="muted">
+  Masukkan jumlah OT yang diterima bagi setiap bulan.
+</p>
+
+{otMonths.map((value,index)=>(
+  <div className="field" key={index}>
+    <label>Bulan {index+1} (RM)</label>
+    <input
+      type="number"
+      min="0"
+      value={value}
+      onChange={e=>{
+        const updated=[...otMonths];
+        updated[index]=e.target.value;
+        setOtMonths(updated);
+      }}
+    />
+  </div>
+))}
+
+<div className="result">
+  <div className="stats">
+    <div className="stat">
+      <small>Purata OT 6 bulan</small>
+      <strong>{money(otAverage)}</strong>
+    </div>
+    <div className="stat">
+      <small>Pengiktirafan Admin</small>
+      <strong>{otPercent}%</strong>
+    </div>
+    <div className="stat">
+      <small>OT diambil kira</small>
+      <strong>{money(result.recognizedOt)}</strong>
+    </div>
+  </div>
+</div>
+<div className="field"><label>Elaun tidak tetap diambil kira</label><select value={variablePercent} onChange={e=>setVariablePercent(e.target.value)}><option value="0">0%</option><option value="50">50% (andaian)</option><option value="100">100% (andaian)</option></select></div>
         <h2 style={{marginTop:24}}>2. Komitmen bulanan</h2>
         <div className="field"><label>Ansuran kereta (RM)</label><input type="number" min="0" value={car} onChange={e=>setCar(e.target.value)}/></div>
         <div className="row"><div className="field"><label>Pinjaman peribadi (RM)</label><input type="number" min="0" value={personal} onChange={e=>setPersonal(e.target.value)}/></div><div className="field"><label>Komitmen lain (RM)</label><input type="number" min="0" value={other} onChange={e=>setOther(e.target.value)}/></div></div>
-        <button className="btn" style={{width:"100%"}} onClick={()=>setShowResults(true)}><Search size={17}/> Kira & cari rumah</button>
+        <button
+  className="btn"
+  style={{width:"100%"}}
+  disabled={!settingsLoaded}
+  onClick={()=>setShowResults(true)}
+>
+  <Search size={17}/> Kira & cari rumah
+</button>
       </div>
-      <div className="panel"><h2>3. Tetapan simulasi</h2><p className="muted">Tetapan awal untuk anggaran. Admin boleh ubah suai mengikut polisi dan kaedah pengiraan yang disahkan.</p>
-        <div className="field"><label>Had DSR simulasi (%)</label><input type="number" min="1" max="100" value={dsr} onChange={e=>setDsr(e.target.value)}/></div>
-        <div className="field"><label>Kadar pembiayaan setahun (%)</label><input type="number" min="0" max="20" step=".1" value={rate} onChange={e=>setRate(e.target.value)}/></div>
-        <div className="field"><label>Tempoh pembiayaan (tahun)</label><select value={years} onChange={e=>setYears(e.target.value)}>{[10,15,20,25,30,35].map(x=><option key={x} value={x}>{x} tahun</option>)}</select></div>
-        <div className="field"><label>Margin pembiayaan (%)</label><select value={margin} onChange={e=>setMargin(e.target.value)}>{[70,80,90,95,100].map(x=><option key={x} value={x}>{x}%</option>)}</select></div>
-        <div className="result"><div className="muted">Anggaran harga maksimum rumah</div><div className="big">{money(result.maxPropertyPrice)}</div><div className="stats"><div className="stat"><small>Pendapatan diambil kira</small><strong>{money(result.income)}</strong></div><div className="stat"><small>Komitmen bulanan</small><strong>{money((Number(car)||0)+(Number(personal)||0)+(Number(other)||0))}</strong></div><div className="stat"><small>Baki ansuran simulasi</small><strong>{money(result.maxInstallment)}</strong></div><div className="stat"><small>Anggaran pembiayaan</small><strong>{money(result.maxFinancing)}</strong></div></div></div>
+    
+<div className="panel">
+  <h2>3. Tetapan simulasi</h2>
+  <p className="muted">
+    Pengiraan menggunakan tetapan yang ditentukan oleh Admin.
+  </p>
+
+  {!settingsLoaded ? (
+  <p className="muted">
+    {settingsError || "Memuatkan tetapan Admin..."}
+  </p>
+) : (
+    <>
+      <div className="stats">
+        <div className="stat">
+          <small>Had DSR</small>
+          <strong>{dsr}%</strong>
+        </div>
+        <div className="stat">
+          <small>Kadar tahunan</small>
+          <strong>{rate}%</strong>
+        </div>
+        <div className="stat">
+          <small>Tempoh</small>
+          <strong>{years} tahun</strong>
+        </div>
+        <div className="stat">
+          <small>Margin pembiayaan</small>
+          <strong>{margin}%</strong>
+        </div>
+      </div>
+
+      <div className="result">
+        <div className="muted">
+          Anggaran harga maksimum rumah
+        </div>
+        <div className="big">
+          {money(result.maxPropertyPrice)}
+        </div>
+
+        <div className="stats">
+          <div className="stat">
+            <small>Pendapatan diambil kira</small>
+            <strong>{money(result.income)}</strong>
+          </div>
+          <div className="stat">
+            <small>Komitmen bulanan</small>
+            <strong>
+              {money((Number(car)||0)+(Number(personal)||0)+(Number(other)||0))}
+            </strong>
+          </div>
+          <div className="stat">
+            <small>Baki ansuran simulasi</small>
+            <strong>{money(result.maxInstallment)}</strong>
+          </div>
+          <div className="stat">
+            <small>Anggaran pembiayaan</small>
+            <strong>{money(result.maxFinancing)}</strong>
+          </div>
+        </div>
+      </div>
+    </>
+  )}
+</div>
       </div>
     </section>
     {showResults&&<section className="panel" style={{marginTop:20}}><div className="adminbar"><div><h2 style={{margin:0}}>4. Rumah yang sepadan</h2><p className="muted">Berdasarkan bajet simulasi anda: {money(result.maxPropertyPrice)}</p></div><select value={location} onChange={e=>setLocation(e.target.value)}><option>Semua lokasi</option>{["Bagan Serai","Parit Buntar","Sungai Petani","Sitiawan"].map(x=><option key={x}>{x}</option>)}</select></div>
