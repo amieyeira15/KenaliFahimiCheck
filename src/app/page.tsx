@@ -245,7 +245,6 @@ return <main className="wrap">
     </>
   )}
 </div>
-      </div>
     </section>
     {showResults&&<section className="panel" style={{marginTop:20}}><div className="adminbar"><div><h2 style={{margin:0}}>4. Rumah yang sepadan</h2><p className="muted">Berdasarkan bajet simulasi anda: {money(result.maxPropertyPrice)}</p></div><select value={location} onChange={e=>setLocation(e.target.value)}><option>Semua lokasi</option>{["Bagan Serai","Parit Buntar","Sungai Petani","Sitiawan"].map(x=><option key={x}>{x}</option>)}</select></div>
       {matches.length===0?<p className="muted">Tiada unit tersedia dalam julat bajet dan lokasi ini. Cuba lokasi lain atau hubungi ejen untuk pilihan lain.</p>:<div className="house-grid">{matches.map(h=><article className="house" key={h.id}>{h.image_url?<img src={h.image_url} alt={h.title}/>:<div style={{height:165,display:"grid",placeItems:"center",background:"#eaf2ed"}}><House size={54} color="#176b4a"/></div>}<div className="house-body"><span className="tag">{h.property_type}</span><h3>{h.title}</h3><div className="price">{money(h.price)}</div><p className="muted">{h.location} · {h.bedrooms??"-"} bilik · {h.bathrooms??"-"} bilik air · {h.tenure||"Maklumat hak milik belum diisi"}</p><p className="muted">{h.description}</p><p className="muted">Anggaran ansuran: <b>{money(installment(h.price,Number(margin),result.factor))}/bulan</b></p><a className="btn" style={{width:"100%"}} href={wa(h)} target="_blank" rel="noreferrer"><MessageCircle size={17}/> Tanya melalui WhatsApp</a></div></article>)}</div>}
