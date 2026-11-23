@@ -11,15 +11,55 @@ type Home = {
   image_url:string|null; description:string|null; status:string;
 };
 
-const demoHomes: Home[] = [
-  {id:"demo1",title:"Teres Setingkat – Bagan Serai",price:250000,location:"Bagan Serai, Perak",property_type:"Teres setingkat",bedrooms:3,bathrooms:2,tenure:"Freehold",image_url:null,description:"Contoh unit untuk demonstrasi sistem.",status:"available"},
-  {id:"demo2",title:"Rumah Subsale – Parit Buntar",price:280000,location:"Parit Buntar, Perak",property_type:"Teres setingkat",bedrooms:3,bathrooms:2,tenure:"Freehold",image_url:null,description:"Contoh unit untuk demonstrasi sistem.",status:"available"},
-  {id:"demo3",title:"Teres Dua Tingkat – Sungai Petani",price:350000,location:"Sungai Petani, Kedah",property_type:"Teres dua tingkat",bedrooms:4,bathrooms:3,tenure:"Freehold",image_url:null,description:"Contoh unit untuk demonstrasi sistem.",status:"available"},
-  {id:"demo4",title:"Teres Setingkat – Sitiawan",price:260000,location:"Sitiawan, Perak",property_type:"Teres setingkat",bedrooms:3,bathrooms:2,tenure:"Freehold",image_url:null,description:"Contoh unit untuk demonstrasi sistem.",status:"available"}
-];
+
+useEffect(() => {
+  let active = true;
+
+  async function loadHomes() {
+    if (!supabase) {
+      setHomesError("Sambungan Supabase tidak tersedia.");
+      setHomesLoading(false);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("homes")
+      .select("*");
+
+    if (!active) return;
+
+    if (error) {
+      console.error("Gagal membaca inventori rumah:", error);
+      setHomesError("Inventori rumah gagal dimuatkan: " + error.message);
+      setHomesLoading(false);
+      return;
+    }
+
+    const availableHomes = (data || [])
+      .filter((home: any) =>
+        String(home.status || "").trim().toLowerCase() === "available"
+      )
+      .map((home: any) => ({
+        ...home,
+        price: Number(home.price) || 0
+      }));
+
+    setHomes(availableHomes);
+    setHomesError("");
+    setHomesLoading(false);
+  }
+
+  loadHomes();
+
+  return () => {
+    active = false;
+  };
+}, []);
 
 export default function HomePage(){
-  const [homes,setHomes]=useState<Home[]>(demoHomes);
+  const [homes,setHomes]=useState<Home[]>([]);
+const [homesLoading,setHomesLoading]=useState(true);
+const [homesError,setHomesError]=useState("");
   const [connected,setConnected]=useState(false);
   const [basic,setBasic]=useState("3000"),[fixed,setFixed]=useState("500"),[variable,setVariable]=useState("300");
   const [variablePercent,setVariablePercent]=useState("50");
