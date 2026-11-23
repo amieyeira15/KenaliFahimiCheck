@@ -60,6 +60,8 @@ export default function HomePage(){
   const [homes,setHomes]=useState<Home[]>([]);
 const [homesLoading,setHomesLoading]=useState(true);
 const [homesError,setHomesError]=useState("");
+const [homesLoading,setHomesLoading]=useState(true);
+const [homesError,setHomesError]=useState("");
   const [connected,setConnected]=useState(false);
   const [basic,setBasic]=useState("3000"),[fixed,setFixed]=useState("500"),[variable,setVariable]=useState("300");
   const [variablePercent,setVariablePercent]=useState("50");
