@@ -17,10 +17,45 @@ export default function dashboard(){
 const [settingsSaving,setSettingsSaving]=useState(false);
  const router=useRouter();
  
+
 async function load(){
   if(!supabase)return;
 
   const {data,error}=await supabase
+    .from("homes")
+    .select("*")
+    .order("created_at",{ascending:false});
+
+  if(error)setError(error.message);
+  else setHomes(data||[]);
+
+  const l=await supabase
+    .from("leads")
+    .select("id,name,phone,estimated_budget,created_at")
+    .order("created_at",{ascending:false})
+    .limit(100);
+
+  if(!l.error)setLeads(l.data||[]);
+
+  const s=await supabase
+    .from("app_settings")
+    .select("dsr,annual_rate,years,margin,ot_percent")
+    .eq("id",1)
+    .single();
+
+  if(s.error){
+    setError("Gagal membaca tetapan: "+s.error.message);
+  }else if(s.data){
+    setSettings({
+      dsr:String(s.data.dsr),
+      annual_rate:String(s.data.annual_rate),
+      years:String(s.data.years),
+      margin:String(s.data.margin),
+      ot_percent:String(s.data.ot_percent)
+    });
+  }
+}
+
     .from("homes")
     .select("*")
     .order("created_at",{ascending:false});
@@ -111,8 +146,6 @@ async function load(){
         Log keluar
       </button>
     </nav>
-
-    <h1>Admin Dashboard</h1>    </nav>
 
     <h1>Admin Dashboard</h1>
 
