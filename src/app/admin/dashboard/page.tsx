@@ -83,7 +83,89 @@ if(s.error){
  {!ready?<div className="panel">Memeriksa akses admin...</div>:<>
  <div className="grid"><section className="panel"><h2>{editing?"Kemaskini unit rumah":"Tambah unit rumah"}</h2><form onSubmit={save}>{Object.entries({title:"Nama / tajuk rumah",price:"Harga (RM)",location:"Lokasi",property_type:"Jenis hartanah",bedrooms:"Bilangan bilik",bathrooms:"Bilangan bilik air",tenure:"Pegangan",image_url:"URL gambar (https://...)",description:"Penerangan"}).map(([key,label])=><div className="field" key={key}><label>{label}</label><input required={["title","price","location","property_type"].includes(key)} type={key==="price"||key==="bedrooms"||key==="bathrooms"?"number":"text"} value={(form as any)[key]} onChange={e=>setForm({...form,[key]:e.target.value})}/></div>)}<div className="field"><label>Status</label><select value={form.status} onChange={e=>setForm({...form,status:e.target.value})}><option value="available">Available</option><option value="booking">Booking</option><option value="sold">Sold</option></select></div><button className="btn">{editing?"Simpan perubahan":"Tambah unit"}</button>{editing&&<button type="button" className="btn secondary" style={{marginLeft:8}} onClick={()=>{setEditing(null);setForm(blank)}}>Batal</button>}</form></section>
  <section className="panel"><h2>Ringkasan</h2><div className="stats"><div className="stat"><small>Jumlah unit</small><strong>{homes.length}</strong></div><div className="stat"><small>Available</small><strong>{homes.filter(h=>h.status==="available").length}</strong></div><div className="stat"><small>Prospek disimpan</small><strong>{leads.length}</strong></div></div><p className="muted" style={{marginTop:20}}>Hanya unit berstatus Available akan dipaparkan kepada pengunjung website.</p></section></div>
- <section className="panel" style={{marginTop:20}}><h2>Inventori rumah</h2><div className="tablewrap"><table><thead><tr><th>Rumah</th><th>Harga</th><th>Lokasi</th><th>Status</th><th>Tindakan</th></tr></thead><tbody>{homes.map(h=><tr key={h.id}><td>{h.title}</td><td>RM {Number(h.price).toLocaleString("en-MY")}</td><td>{h.location}</td><td>{h.status}</td><td><button className="btn secondary" onClick={()=>edit(h)}>Edit</button> <button className="btn danger" onClick={()=>remove(h.id)}>Padam</button></td></tr>)}</tbody></table></div></section>
- <section className="panel" style={{marginTop:20}}><h2>Prospek client</h2><p className="muted">Paparan ringkas prospek yang telah bersetuju menyimpan maklumat.</p><div className="tablewrap"><table><thead><tr><th>Nama</th><th>Telefon</th><th>Anggaran bajet</th><th>Tarikh</th></tr></thead><tbody>{leads.map(l=><tr key={l.id}><td>{l.name}</td><td>{l.phone}</td><td>RM {Number(l.estimated_budget).toLocaleString("en-MY")}</td><td>{new Date(l.created_at).toLocaleDateString("ms-MY")}</td></tr>)}</tbody></table></div></section>
- </>}</main>
-}
+ </section></div>
+
+<section className="panel" style={{marginTop:20}}>
+  <h2>Tetapan Pengiraan Kelayakan</h2>
+  <p className="muted">
+    Tetapan ini dikawal oleh Admin dan digunakan untuk pengiraan kelayakan pelanggan.
+  </p>
+
+  <form onSubmit={saveSettings}>
+    <div className="grid">
+
+      <div className="field">
+        <label>Had DSR (%)</label>
+        <input
+          type="number"
+          min="1"
+          max="100"
+          step="0.1"
+          required
+          value={settings.dsr}
+          onChange={e=>setSettings({...settings,dsr:e.target.value})}
+        />
+      </div>
+
+      <div className="field">
+        <label>Kadar pembiayaan tahunan (%)</label>
+        <input
+          type="number"
+          min="0"
+          step="0.01"
+          required
+          value={settings.annual_rate}
+          onChange={e=>setSettings({...settings,annual_rate:e.target.value})}
+        />
+      </div>
+
+      <div className="field">
+        <label>Tempoh pembiayaan (tahun)</label>
+        <input
+          type="number"
+          min="1"
+          max="40"
+          required
+          value={settings.years}
+          onChange={e=>setSettings({...settings,years:e.target.value})}
+        />
+      </div>
+
+      <div className="field">
+        <label>Margin pembiayaan (%)</label>
+        <input
+          type="number"
+          min="1"
+          max="100"
+          step="0.1"
+          required
+          value={settings.margin}
+          onChange={e=>setSettings({...settings,margin:e.target.value})}
+        />
+      </div>
+
+      <div className="field">
+        <label>Pengiktirafan OT (%)</label>
+        <input
+          type="number"
+          min="0"
+          max="100"
+          step="1"
+          required
+          value={settings.ot_percent}
+          onChange={e=>setSettings({...settings,ot_percent:e.target.value})}
+        />
+        <small className="muted">
+          Contoh: 80% bermaksud hanya 80% daripada purata OT diambil kira.
+        </small>
+      </div>
+
+    </div>
+
+    <button className="btn" disabled={settingsSaving}>
+      {settingsSaving?"Menyimpan...":"Simpan Tetapan"}
+    </button>
+  </form>
+</section>
+
+<section className="panel" style={{marginTop:20}}>
